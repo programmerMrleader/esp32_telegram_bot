@@ -10,30 +10,25 @@
 WiFiClientSecure secured_client; // wifi client 
 UniversalTelegramBot bot(BOT_TOKEN, secured_client); // bot client
 
-struct MusicQuery{
-  String title,artist,year;
-};
 
-void parseJson(const String &JsonBody) {
-  JsonDocument doc;
-  DeserializationError err = deserializeJson(doc,JsonBody);
+void status(String &msg_id) {
   
-  JsonArray recording = doc["recordings"];
-  int limit = min((int)recording.size(),10);
-  for (int i = 0; i < limit; i++) {
-    JsonObject rec = recording[i];
+  WiFiClientSecure testClient;
+  testClient.setInsecure();
 
-    String title = rec["title"] | "Unknown Title";
-    
-    // Artist name is nested under artist-credit -> [0] -> name
-    String artist = rec["artist-credit"][0]["name"] | "Unknown Artist";
-    
-    // First release date/year
-    String releaseDate = rec["first-release-date"] | "N/A";
-    String year = releaseDate.substring(0, 4); // Extract YYYY
+  bot.sendMessage(msg_id,"Testing HTTPS connection to Telegram...","Markdown");
 
-    Serial.printf("%d. %s - %s (%s)\n", i + 1, title.c_str(), artist.c_str(), year.c_str());
+  if (testClient.connect("api.telegram.org", 443))
+  {
+      bot.sendMessage(msg_id,"HTTPS connection Success!", "");
+      testClient.stop();
   }
+  else
+  {
+      bot.sendMessage(msg_id,"HTTPS connection FAILED!", "");
+  }
+  secured_client.setInsecure();
+
 }
 void music(String query, String msg_id) {
   if (query.length() == 0) {
@@ -125,6 +120,7 @@ void Search_image_random(String query,String chat_id) {
     bot.sendMessage(chat_id,"Usage /search <name>","");
     return;
   }
+  
   String random_url = "/photos/random?query=" + query + "&per_page=1";
   WiFiClientSecure client;
   client.setInsecure();
@@ -197,12 +193,15 @@ String string_strip(String &msg_text) {
   int spaceIndex = text.indexOf(' ');
   String query = (spaceIndex == -1) ? "" : text.substring(spaceIndex + 1);
   query.trim();
+  
   return query;
 }
 void handleNewMessages(int numNewMessages)
 {
+  //replace LCD code
   Serial.print("handleNewMessages ");
   Serial.println(numNewMessages);
+  //replace LCD code end
   String error;
   String answer;
   bool sendAnswer = false;
@@ -211,17 +210,17 @@ void handleNewMessages(int numNewMessages)
   {
     telegramMessage &msg = bot.messages[i];
     Serial.println("Received " + msg.text);
-    msg.chat_title = "THEEE";
+    msg.chat_title = "Welcome";
     if (msg.text == "/help") {
-      answer = "So you need _help_, uh? me too! use /start or /status";
+      answer = "Welcome to my bot please use /start or /status or /help for available commands";
       sendAnswer = true;
     }
     else if (msg.text == "/start") {
-      answer = "Welcome my new friend! You are the first *" + msg.chat_title + "* I've ever met";
+      answer = "Welcome " + msg.chat_id + " \nPlease do not show that ID to anyone!\n";
       sendAnswer = true;
     }
     else if (msg.text == "/status") {
-      answer = "All is good here, thanks for asking!";
+      status(msg.chat_id);
       sendAnswer = true;
     }
     else if (msg.text == "/chat_id") {
@@ -235,6 +234,7 @@ void handleNewMessages(int numNewMessages)
         sendAnswer = true;
       }
       else {
+        query.replace(" ", "%20");
         bot.sendMessage(msg.chat_id, "Searching for: " + query, "Markdown");
         Search_image_random(query, msg.chat_id);
       }
@@ -282,15 +282,20 @@ void setup()
   Serial.println();
   // attempt to start a file system 
   if (!SPIFFS.begin(true)) {
+    //replace LCD code
     Serial.println("An error has occured while mounting file system");
     return;
   }
-  Serial.println("SPIFFS mounted successfully");
+  //replace LCD code
+  lcd_display_setup(); 
+  lcd_show_message("SPIFFS mounted successfully");
   Serial.printf("SPIFFS totalsize=%u used=%u\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
   // attempt to connect to Wifi network:
   configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
+  // replace LCD
   Serial.print("Connecting to Wifi SSID ");
   Serial.print(WIFI_SSID);
+  // replace LCD
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED)
   {
