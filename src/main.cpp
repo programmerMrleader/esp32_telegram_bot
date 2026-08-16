@@ -160,6 +160,7 @@ void Search_image_random(String query,String chat_id) {
   }
 
   if (doc.containsKey("errors")) {
+
     String errorMessage;
     if (doc["errors"].is<JsonArray>() && doc["errors"].size() > 0) {
       errorMessage = doc["errors"][0].as<String>();
@@ -274,12 +275,12 @@ void bot_setup()
   bot.setMyCommands(commands);
   //bot.sendMessage("25235518", "Hola amigo!", "Markdown");
 }
-
 void setup()
 {
   // strarting serial
   Serial.begin(9600);
   Serial.println();
+  lcd_display_setup();
   // attempt to start a file system 
   if (!SPIFFS.begin(true)) {
     //replace LCD code
@@ -287,7 +288,6 @@ void setup()
     return;
   }
   //replace LCD code
-  lcd_display_setup(); 
   lcd_show_message("SPIFFS mounted successfully");
   Serial.printf("SPIFFS totalsize=%u used=%u\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
   // attempt to connect to Wifi network:
@@ -302,7 +302,8 @@ void setup()
     Serial.print(".");
     delay(500);
   }
-  Serial.print("\nWiFi connected. IP address: ");
+  lcd_show_message("\nWiFi connected. IP address: ");
+  lcd_scroll(ScrollCode::DOWN);
   Serial.println(WiFi.localIP());
   
   Serial.print("Gateway: ");
