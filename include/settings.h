@@ -27,5 +27,6 @@ enum ScrollCode {
 };
 void lcd_display_setup(); 
 void lcd_show_message(const char* text);
+void lcd_loop_message(const char* text);
 void lcd_scroll(uint8_t code);
 #endif // ending the def 

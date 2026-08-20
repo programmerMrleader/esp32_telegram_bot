@@ -288,7 +288,9 @@ void setup()
     return;
   }
   //replace LCD code
+  
   lcd_show_message("SPIFFS mounted successfully");
+  
   Serial.printf("SPIFFS totalsize=%u used=%u\n", SPIFFS.totalBytes(), SPIFFS.usedBytes());
   // attempt to connect to Wifi network:
   configTime(0, 0, "pool.ntp.org");      // get UTC time via NTP
@@ -303,25 +305,20 @@ void setup()
     delay(500);
   }
   lcd_show_message("\nWiFi connected. IP address: ");
-  lcd_scroll(ScrollCode::DOWN);
-  Serial.println(WiFi.localIP());
-  
-  Serial.print("Gateway: ");
-  Serial.println(WiFi.gatewayIP());
-
-  Serial.print("DNS: ");
-  Serial.println(WiFi.dnsIP());
-
-  Serial.print("RSSI: ");
-  Serial.println(WiFi.RSSI());
+  delay(1000);
+  lcd_show_message(WiFi.localIP().toString().c_str());
+  delay(1000);
+  lcd_show_message(WiFi.dnsIP().toString().c_str());
+  delay(1000);
+  lcd_show_message(WiFi.gatewayIP().toString().c_str());
+  delay(1000);
   // Check NTP/Time, usually it is instantaneous and you can delete the code below.
-  Serial.print("Retrieving time: ");
-
+  lcd_show_message("Retrieving time: ");
   time_t now = time(nullptr);
 
   while (now < 24 * 3600)
   {
-      Serial.print(".");
+      lcd_loop_message(".");
       delay(100);
       now = time(nullptr);
   }
@@ -332,16 +329,18 @@ void setup()
   WiFiClientSecure testClient;
   testClient.setInsecure();
 
-  Serial.println("Testing HTTPS connection to Telegram...");
-
+  lcd_show_message("Testing HTTPS connection to Telegram...");
+  delay(1000);
   if (testClient.connect("api.telegram.org", 443))
   {
-      Serial.println("HTTPS connection SUCCESS!");
+      lcd_show_message("HTTPS connection SUCCESS!");
       testClient.stop();
+      delay(1000);  
   }
   else
   {
-      Serial.println("HTTPS connection FAILED!");
+      lcd_show_message("HTTPS connection FAILED!");
+      
   }
 
   secured_client.setInsecure();
